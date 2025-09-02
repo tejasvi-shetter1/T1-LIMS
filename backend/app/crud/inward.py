@@ -93,7 +93,7 @@ class InwardCrud:
             calibration_type=calibration_type,
             calibration_method=calibration_method,
             measurement_points=measurement_points,
-            calibration_status="pending",
+            status="pending",
             created_by=current_user
         )
         

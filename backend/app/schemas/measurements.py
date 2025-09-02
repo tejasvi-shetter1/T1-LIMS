@@ -1,4 +1,4 @@
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, validator, conlist
 from typing import List, Dict, Optional, Any
 from datetime import date
 from decimal import Decimal
@@ -8,7 +8,7 @@ class MeasurementPointData(BaseModel):
     set_torque: float
     set_pressure: Optional[float] = None
     readings: List[float]  # 5 readings for repeatability
-    
+
     @validator('readings')
     def validate_readings(cls, v):
         if len(v) != 5:
@@ -86,8 +86,8 @@ class MeasurementResponse(BaseModel):
     pass_fail_status: Optional[str]
     
     # Summary statistics
-    total_points: Optional[int]
-    readings_per_point: Optional[int]
+    total_points: Optional[int] = None
+    readings_per_point: Optional[int] = None
     
     class Config:
         from_attributes = True

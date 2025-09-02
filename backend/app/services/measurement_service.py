@@ -1,11 +1,10 @@
 import numpy as np
 from typing import Dict, List, Optional, Tuple
-#from sqlalchemy.types import DECIMAL as Decimal
 from decimal import Decimal, ROUND_HALF_UP
 from sqlalchemy.orm import Session
 from app.models.measurements import Measurement, UncertaintyCalculation, MeasurementType
-#from app.models.jobs import Job
 from app.schemas.measurements import MeasurementCreate, RepeatabilityData, ReproducibilityData
+
 
 class MeasurementService:
     
@@ -69,9 +68,10 @@ class MeasurementService:
         processed_points = []
         
         for point in measurement_data.measurement_points:
-            set_torque = point["set_torque"]
-            readings = point["readings"]  # 5 readings: S1, S2, S3, S4, S5
-            set_pressure = point.get("set_pressure", 0)  # Pressure gauge reading
+            # CORRECT - Use dot notation for Pydantic models
+            set_torque = point.set_torque
+            readings = point.readings  # 5 readings: S1, S2, S3, S4, S5
+            set_pressure = point.set_pressure or 0  # Pressure gauge reading
             
             # Calculate statistics exactly as Excel
             mean_value = np.mean(readings)
@@ -112,6 +112,48 @@ class MeasurementService:
                 "total_points": len(processed_points),
                 "readings_per_point": 5
             }
+        }
+    
+    @staticmethod
+    def _process_reproducibility_data(measurement_data: ReproducibilityData) -> Dict:
+        """
+        Process reproducibility data exactly as Excel
+        """
+        
+        #  CORRECT - Use dot notation
+        series_data = measurement_data.series_measurements
+        set_torque = measurement_data.set_torque
+        
+        # Calculate mean for each series
+        series_means = []
+        for series in series_data:
+            # CORRECT - Access dictionary keys for series data
+            series_mean = np.mean(series.measurements)  # Use dot notation for Pydantic model
+            series_means.append(series_mean)
+        
+        # Calculate overall mean
+        overall_mean = np.mean(series_means)
+        
+        # Calculate reproducibility error (max - min of series means)
+        reproducibility_error = max(series_means) - min(series_means)
+        
+        # Relative reproducibility error
+        relative_error = (reproducibility_error / set_torque) * 100
+        
+        return {
+            "measurement_type": "reproducibility",
+            "set_torque": float(set_torque),
+            "series_data": [
+                {
+                    "series_number": i + 1,
+                    "measurements": series.measurements,  # ✅ Use dot notation
+                    "mean": float(series_means[i])
+                }
+                for i, series in enumerate(series_data)
+            ],
+            "overall_mean": float(overall_mean),
+            "reproducibility_error": float(reproducibility_error),
+            "relative_error_percent": float(relative_error)
         }
     
     @staticmethod
@@ -156,50 +198,6 @@ class MeasurementService:
         db.refresh(measurement)
         
         return measurement
-    
-    @staticmethod
-    def _process_reproducibility_data(measurement_data: ReproducibilityData) -> Dict:
-        """
-        Process reproducibility data exactly as Excel
-        
-        From Excel Crt2 sheet: 4 series with mean values
-        Example: Series-1: 1225.3374608432573, Series-2: 1224.7653113248173, etc.
-        Reproducibility error: 0.5721495184400283 Nm
-        """
-        
-        series_data = measurement_data.series_measurements
-        set_torque = measurement_data.set_torque
-        
-        # Calculate mean for each series
-        series_means = []
-        for series in series_data:
-            series_mean = np.mean(series["measurements"])
-            series_means.append(series_mean)
-        
-        # Calculate overall mean
-        overall_mean = np.mean(series_means)
-        
-        # Calculate reproducibility error (max - min of series means)
-        reproducibility_error = max(series_means) - min(series_means)
-        
-        # Relative reproducibility error
-        relative_error = (reproducibility_error / set_torque) * 100
-        
-        return {
-            "measurement_type": "reproducibility",
-            "set_torque": float(set_torque),
-            "series_data": [
-                {
-                    "series_number": i + 1,
-                    "measurements": series["measurements"],
-                    "mean": float(series_means[i])
-                }
-                for i, series in enumerate(series_data)
-            ],
-            "overall_mean": float(overall_mean),
-            "reproducibility_error": float(reproducibility_error),
-            "relative_error_percent": float(relative_error)
-        }
     
     @staticmethod
     def create_output_drive_measurement(

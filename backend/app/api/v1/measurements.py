@@ -128,6 +128,7 @@ async def calculate_measurement_uncertainty(
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+# ✅ ENHANCED VALIDATION ENDPOINT WITH PROPER ERROR HANDLING
 @router.get("/{measurement_id}/validation")
 async def validate_measurement_results(
     measurement_id: int,
@@ -135,26 +136,150 @@ async def validate_measurement_results(
 ):
     """
     Validate measurement results and determine if deviation report is needed
+    Enhanced with comprehensive error handling and validation logic
     """
-    from app.models.measurements import Measurement, UncertaintyCalculation
-    
-    measurement = db.query(Measurement).filter(Measurement.id == measurement_id).first()
-    if not measurement:
-        raise HTTPException(status_code=404, detail="Measurement not found")
-    
-    uncertainty = db.query(UncertaintyCalculation).filter(
-        UncertaintyCalculation.measurement_id == measurement_id
-    ).first()
-    
-    if not uncertainty:
-        raise HTTPException(status_code=400, detail="Uncertainty calculation not found")
-    
-    validation_result = UncertaintyCalculationService.validate_measurement_results(
-        measurement_data=measurement.measurement_data,
-        uncertainty_calculation=uncertainty
-    )
-    
-    return validation_result
+    try:
+        from app.models.measurements import Measurement, UncertaintyCalculation
+        
+        # Check if measurement exists
+        measurement = db.query(Measurement).filter(Measurement.id == measurement_id).first()
+        if not measurement:
+            raise HTTPException(status_code=404, detail="Measurement not found")
+        
+        # Check if uncertainty calculation exists
+        uncertainty = db.query(UncertaintyCalculation).filter(
+            UncertaintyCalculation.measurement_id == measurement_id
+        ).first()
+        
+        if not uncertainty:
+            return {
+                "measurement_id": measurement_id,
+                "validation_status": "incomplete",
+                "reason": "Uncertainty calculation not found - run calculate-uncertainty first",
+                "deviation_report_required": False,
+                "next_steps": ["Complete uncertainty calculation", "Re-run validation"]
+            }
+        
+        # Perform comprehensive validation
+        validation_result = perform_measurement_validation(measurement, uncertainty)
+        
+        return validation_result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        # Enhanced error logging for debugging
+        error_detail = f"Validation processing failed for measurement {measurement_id}: {str(e)}"
+        print(f"❌ {error_detail}")
+        
+        raise HTTPException(
+            status_code=500, 
+            detail={
+                "error": "Internal validation error",
+                "message": error_detail,
+                "measurement_id": measurement_id
+            }
+        )
+
+def perform_measurement_validation(measurement, uncertainty):
+    """
+    Comprehensive measurement validation against ISO requirements
+    """
+    try:
+        # Extract measurement data safely
+        measurement_data = measurement.measurement_data or {}
+        
+        # Initialize validation checks
+        validation_checks = {}
+        
+        # Check 1: Measurement completion
+        validation_checks["measurement_complete"] = measurement.is_completed or False
+        
+        # Check 2: Uncertainty components available
+        validation_checks["uncertainty_calculated"] = uncertainty is not None
+        
+        # Check 3: Required uncertainty components present
+        if uncertainty:
+            has_uncertainty_components = any([
+                uncertainty.uncertainty_repeatability,
+                uncertainty.uncertainty_reproducibility,
+                uncertainty.uncertainty_output_drive,
+                uncertainty.uncertainty_standard
+            ])
+            validation_checks["uncertainty_components_present"] = has_uncertainty_components
+        else:
+            validation_checks["uncertainty_components_present"] = False
+        
+        # Check 4: Expanded uncertainty calculated
+        if uncertainty and uncertainty.expanded_uncertainty_percent:
+            validation_checks["expanded_uncertainty_available"] = True
+            # Check if within typical laboratory limits (example: < 5%)
+            expanded_uncertainty_pct = float(uncertainty.expanded_uncertainty_percent)
+            validation_checks["within_typical_limits"] = expanded_uncertainty_pct < 5.0
+        else:
+            validation_checks["expanded_uncertainty_available"] = False
+            validation_checks["within_typical_limits"] = False
+        
+        # Check 5: Coverage factor appropriate (k=2 for 95% confidence)
+        validation_checks["coverage_factor_appropriate"] = uncertainty.coverage_factor == 2 if uncertainty else False
+        
+        # Determine overall validation status
+        critical_checks = [
+            "measurement_complete",
+            "uncertainty_calculated", 
+            "expanded_uncertainty_available"
+        ]
+        
+        all_critical_passed = all(validation_checks.get(check, False) for check in critical_checks)
+        all_checks_passed = all(validation_checks.values())
+        
+        # Determine validation status
+        if all_checks_passed:
+            status = "passed"
+            recommendation = "Measurement meets all ISO requirements - ready for certification"
+        elif all_critical_passed:
+            status = "passed_with_notes"
+            recommendation = "Measurement meets critical requirements - minor issues noted"
+        else:
+            status = "failed"
+            recommendation = "Measurement requires correction before certification"
+        
+        # Determine if deviation report needed
+        deviation_required = not all_critical_passed or (
+            uncertainty and 
+            uncertainty.expanded_uncertainty_percent and 
+            float(uncertainty.expanded_uncertainty_percent) > 3.0
+        )
+        
+        return {
+            "measurement_id": measurement.id,
+            "measurement_type": measurement.measurement_type,
+            "validation_status": status,
+            "validation_checks": validation_checks,
+            "summary": {
+                "total_checks": len(validation_checks),
+                "passed_checks": sum(validation_checks.values()),
+                "critical_checks_passed": all_critical_passed
+            },
+            "uncertainty_summary": {
+                "combined_uncertainty": float(uncertainty.combined_uncertainty) if uncertainty and uncertainty.combined_uncertainty else None,
+                "expanded_uncertainty_percent": float(uncertainty.expanded_uncertainty_percent) if uncertainty and uncertainty.expanded_uncertainty_percent else None,
+                "coverage_factor": uncertainty.coverage_factor if uncertainty else None
+            },
+            "deviation_report_required": deviation_required,
+            "recommendation": recommendation,
+            "timestamp": measurement.created_at.isoformat() if measurement.created_at else None
+        }
+        
+    except Exception as e:
+        # Fallback validation result on processing error
+        return {
+            "measurement_id": measurement.id,
+            "validation_status": "error",
+            "reason": f"Validation processing error: {str(e)}",
+            "deviation_report_required": True,
+            "recommendation": "Manual review required due to validation system error"
+        }
 
 @router.get("/templates/", response_model=List[dict])
 async def get_measurement_templates(
