@@ -1,55 +1,53 @@
-from sqlalchemy import Column, Integer, String, Text, Date, ForeignKey, JSON, Boolean, DateTime
+from sqlalchemy import Column, Integer, String, Text, DateTime, Boolean, ForeignKey, JSON
 from sqlalchemy.orm import relationship
+from sqlalchemy import Enum as SQLEnum
 from app.database import Base
 from app.models.base import TimestampMixin, AuditMixin
 import enum
+from datetime import datetime
+
+class DeviationType(str, enum.Enum):
+    OOT = "OOT"
+    DAMAGED = "DAMAGED" 
+    MISSING_STANDARD = "MISSING_STANDARD"
+    GB_FAILURE = "GB_FAILURE"
+    ENVIRONMENTAL = "ENVIRONMENTAL"
+    EQUIPMENT_MALFUNCTION = "EQUIPMENT_MALFUNCTION"
 
 class DeviationStatus(str, enum.Enum):
-    IDENTIFIED = "identified"              # Auto-detected deviation
-    UNDER_REVIEW = "under_review"         # QA/Lab Manager reviewing
-    CLIENT_NOTIFIED = "client_notified"   # Customer notification sent
-    AWAITING_DECISION = "awaiting_decision"  # Waiting for customer decision
-    ACCEPTED = "accepted"                 # Customer accepted deviation
-    REJECTED = "rejected"                 # Customer rejected - rework needed
-    CLOSED = "closed"                     # Deviation resolved
-
-class ClientDecision(str, enum.Enum):
-    PROCEED = "proceed"                   # Accept as-is
-    REWORK = "rework"                     # Re-calibrate
-    SCRAP = "scrap"                       # Item unusable
-    OOT_ACCEPTANCE = "oot_acceptance"     # Out-of-tolerance acceptance
+    OPEN = "OPEN"
+    IN_REVIEW = "IN_REVIEW"
+    CUSTOMER_NOTIFIED = "CUSTOMER_NOTIFIED"
+    CUSTOMER_ACCEPTED = "CUSTOMER_ACCEPTED"
+    CUSTOMER_REJECTED = "CUSTOMER_REJECTED"
+    RESOLVED = "RESOLVED"
+    CLOSED = "CLOSED"
 
 class DeviationReport(Base, TimestampMixin, AuditMixin):
     __tablename__ = "deviation_reports"
     
     id = Column(Integer, primary_key=True, index=True)
     job_id = Column(Integer, ForeignKey("jobs.id"), nullable=False)
-    
-    # Deviation Identification
-    deviation_number = Column(String(100), unique=True, nullable=False)  # Auto-generated
-    deviation_type = Column(String(100))                                 # "measurement_out_of_tolerance", "equipment_damage"
-    severity = Column(String(50), default="medium")                      # low, medium, high, critical
-    
-    # Deviation Details
+    deviation_number = Column(String(100), unique=True, nullable=False)
+    deviation_type = Column(String(100))
+    severity = Column(String(50))
     description = Column(Text, nullable=False)
     root_cause_analysis = Column(Text)
-    affected_measurements = Column(JSON)                                 # Which measurements are affected
-    
-    # Impact Assessment
+    affected_measurements = Column(JSON)
     technical_impact = Column(Text)
     customer_impact = Column(Text)
     recommendations = Column(Text)
+    status = Column(String(50))
     
-    # Workflow Status
-    status = Column(String(50), default=DeviationStatus.IDENTIFIED)
+    # Lab Staff Actions
     identified_by = Column(String(255))
-    reviewed_by = Column(String(255))                                    # QA Manager
-    approved_by = Column(String(255))                                    # Lab Manager
+    reviewed_by = Column(String(255))
+    approved_by = Column(String(255))
     
     # Client Communication
     client_notified_at = Column(DateTime)
-    client_notification_method = Column(String(100))                    # email, portal, phone
-    client_decision = Column(String(50))                                # From ClientDecision enum
+    client_notification_method = Column(String(100))
+    client_decision = Column(String(50))
     client_decision_date = Column(DateTime)
     client_comments = Column(Text)
     
@@ -60,3 +58,21 @@ class DeviationReport(Base, TimestampMixin, AuditMixin):
     
     # Relationships
     job = relationship("Job", back_populates="deviations")
+    actions = relationship("DeviationAction", back_populates="deviation", cascade="all, delete-orphan")
+
+class DeviationAction(Base, TimestampMixin):
+    __tablename__ = "deviation_actions"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    deviation_id = Column(Integer, ForeignKey("deviation_reports.id"), nullable=False)
+    action_type = Column(String(50), nullable=False)
+    action_by = Column(String(255), nullable=False)
+    action_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    comments = Column(Text)
+    old_status = Column(String(50))
+    new_status = Column(String(50))
+    ip_address = Column(String(45))
+    user_agent = Column(Text)
+    
+    # Relationships
+    deviation = relationship("DeviationReport", back_populates="actions")

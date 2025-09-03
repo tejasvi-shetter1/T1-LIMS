@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certificate Page 3 of 3</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            font-size: 9pt;
+            line-height: 1.1;
+        }
+        
+        .header {
+            text-align: right;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .cert-info {
+            margin-bottom: 15px;
+        }
+        
+        .section-header {
+            font-weight: bold;
+            font-size: 10pt;
+            margin: 15px 0 8px 0;
+        }
+        
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+            font-size: 8pt;
+        }
+        
+        .results-table td, .results-table th {
+            border: 1px solid black;
+            padding: 3px 5px;
+            text-align: center;
+            vertical-align: middle;
+        }
+        
+        .results-table th {
+            background-color: #f0f0f0;
+            font-weight: bold;
+        }
+        
+        .uncertainty-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+            font-size: 8pt;
+        }
+        
+        .uncertainty-table td, .uncertainty-table th {
+            border: 1px solid black;
+            padding: 4px 6px;
+            text-align: center;
+            vertical-align: middle;
+        }
+        
+        .uncertainty-table th {
+            background-color: #f0f0f0;
+            font-weight: bold;
+            font-size: 7pt;
+            line-height: 1.2;
+        }
+        
+        .uncertainty-note {
+            margin: 15px 0;
+            font-size: 8pt;
+            font-weight: bold;
+            text-align: center;
+        }
+        
+        .signatures {
+            margin-top: 30px;
+        }
+        
+        .signature-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .signature-table td {
+            padding: 20px 8px;
+            text-align: center;
+            vertical-align: bottom;
+        }
+        
+        .end-certificate {
+            text-align: center;
+            font-weight: bold;
+            font-size: 11pt;
+            margin-top: 20px;
+        }
+        
+        .loading-point-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+            font-size: 8pt;
+        }
+        
+        .loading-point-table td, .loading-point-table th {
+            border: 1px solid black;
+            padding: 4px 6px;
+            vertical-align: middle;
+        }
+        
+        .loading-point-table th {
+            background-color: #f0f0f0;
+            font-weight: bold;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">Page 3 of 3</div>
+    
+    <!-- Certificate Info -->
+    <div class="cert-info">
+        <strong>Certificate No : {{ cert_data.certificate_number }}</strong>
+        <span style="float: right;"><strong>Date of Calibration : {{ cert_data.calibration_date }}</strong></span>
+    </div>
+    
+    <!-- D. Variation of interface between the tool and the calibration system -->
+    <div class="section-header">D. Variation of interface between the tool and the calibration system</div>
+    <table class="results-table">
+        <thead>
+            <tr>
+                <th>Target Value<br>Xa (Nm)</th>
+                <th>Series-1<br>Mean Value (Nm)</th>
+                <th>Series-2<br>Mean Value (Nm)</th>
+                <th>Series-3<br>Mean Value (Nm)</th>
+                <th>Series-4<br>Mean Value (Nm)</th>
+                <th>Error due to Interface<br>(in Nm)</th>
+                <th>in %</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>{{ cert_data.measurement_results.reproducibility_data.target_value }}</td>
+                <td>{{ cert_data.measurement_results.geometric_effects.interface.mean_values[0] }}</td>
+                <td>{{ cert_data.measurement_results.geometric_effects.interface.mean_values[1] }}</td>
+                <td>{{ cert_data.measurement_results.geometric_effects.interface.mean_values[2] }}</td>
+                <td>{{ cert_data.measurement_results.geometric_effects.interface.mean_values[3] }}</td>
+                <td>{{ cert_data.measurement_results.geometric_effects.interface.error }}</td>
+                <td>{{ cert_data.measurement_results.geometric_effects.interface.error_percent | round(6) }}</td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <!-- E. Variation due to Loading point -->
+    <div class="section-header">E. Variation due to Loading point</div>
+    <table class="loading-point-table">
+        <thead>
+            <tr>
+                <th>SET TORQUE<br>(Nm)</th>
+                <th>POSITION</th>
+                <th>Mean Value<br>(Nm)</th>
+                <th>Error due to Loading point<br>(in Nm)</th>
+                <th>in %</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td rowspan="2">{{ cert_data.measurement_results.reproducibility_data.target_value }}</td>
+                <td>{{ cert_data.measurement_results.geometric_effects.loading_point.positions[0] }}</td>
+                <td>{{ cert_data.measurement_results.geometric_effects.loading_point.mean_values[0] | round(2) }}</td>
+                <td rowspan="2">{{ cert_data.measurement_results.geometric_effects.loading_point.error | round(2) }}</td>
+                <td rowspan="2">{{ cert_data.measurement_results.geometric_effects.loading_point.error_percent | round(6) }}</td>
+            </tr>
+            <tr>
+                <td>{{ cert_data.measurement_results.geometric_effects.loading_point.positions[1] }}</td>
+                <td>{{ cert_data.measurement_results.geometric_effects.loading_point.mean_values[1] | round(2) }}</td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <!-- F. Measurement Uncertainties -->
+    <div class="section-header">F. Measurement Uncertainties</div>
+    <table class="uncertainty-table">
+        <thead>
+            <tr>
+                <th>Calibration<br>Value<br>(Nm)</th>
+                <th>Average<br>Value of<br>(Nm)</th>
+                <th>Mean Value of the error<br>(in %)</th>
+                <th>Relative<br>expanded<br>measurement<br>uncertainty W<br>(in %)</th>
+                <th>Max. value of<br>the calibration<br>device<br>measurement<br>error<br>(in %)</th>
+                <th>Relative measurement<br>uncertainty interval<br>(in %)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for uncertainty in cert_data.uncertainty_measurements %}
+            <tr>
+                <td>{{ uncertainty.calibration_value }}</td>
+                <td>{{ uncertainty.average_value | round(2) }}</td>
+                <td>{{ uncertainty.mean_error_percent | round(2) }}</td>
+                <td>{{ uncertainty.expanded_uncertainty_percent | round(2) }}</td>
+                <td>{{ uncertainty.max_device_error_percent | round(2) }}</td>
+                <td>{{ uncertainty.uncertainty_interval_percent | round(2) }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <!-- Uncertainty Note -->
+    <div class="uncertainty-note">
+        The Estimated Uncertainty of Measurement associated with the results is calculated at a confidence level of 95%<br>
+        approximately with a coverage factor k=2
+    </div>
+    
+    <!-- Signatures -->
+    <div class="signatures">
+        <table class="signature-table">
+            <tr>
+                <td><strong>{{ cert_data.checked_by }}</strong></td>
+                <td></td>
+                <td></td>
+                <td><strong>Authorised Signatory</strong></td>
+            </tr>
+            <tr>
+                <td><br><br><br></td>
+                <td></td>
+                <td></td>
+                <td><br><br><br></td>
+            </tr>
+            <tr>
+                <td><strong>{{ cert_data.calibration_engineer }}</strong></td>
+                <td></td>
+                <td></td>
+                <td><strong>{{ cert_data.authorised_signatory }}</strong></td>
+            </tr>
+        </table>
+    </div>
+    
+    <!-- End of Certificate -->
+    <div class="end-certificate">
+        *** END OF CERTIFICATE ***
+    </div>
+</body>
+</html>

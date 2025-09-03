@@ -5,6 +5,7 @@ from app.database import Base
 from app.models.base import TimestampMixin, AuditMixin
 import enum
 
+
 class JobStatus(str, enum.Enum):
     PENDING = "pending"
     IN_PROGRESS = "in_progress"
@@ -16,6 +17,7 @@ class JobStatus(str, enum.Enum):
     CERTIFICATE_GENERATED = "certificate_generated"
     COMPLETED = "completed"
     ON_HOLD = "on_hold"
+
 
 class Job(Base, TimestampMixin, AuditMixin):
     __tablename__ = "jobs"
@@ -50,7 +52,7 @@ class Job(Base, TimestampMixin, AuditMixin):
     environmental_notes = Column(Text)
     
     # Status Tracking (from Inward Register analysis)
-    status = Column(String(50), default=JobStatus.PENDING)       # Maps to CALIBRATION STATUS
+    status = Column(String(50), default=JobStatus.PENDING.value)  # Maps to CALIBRATION STATUS
     calibration_date = Column(Date)                              # CALIBRATION DATE
     due_date = Column(Date)                                      # Service level agreement
     
@@ -66,8 +68,12 @@ class Job(Base, TimestampMixin, AuditMixin):
     
     # Job Results Summary
     overall_result = Column(String(50))                         # "pass", "fail", "conditional"
+    
+    # Deviation Control Fields (Updated for deviation management)
     deviation_required = Column(Boolean, default=False)         # Auto-determined from measurements
     deviation_approved = Column(Boolean, default=False)         # Customer approval for deviation
+    deviation_resolved = Column(Boolean, nullable=False, default=False)  # All deviations resolved
+    can_generate_certificate = Column(Boolean, nullable=False, default=True)  # Certificate generation control
     
     # Priority and Special Instructions (from SRF)
     priority = Column(String(50), default='normal')             # normal, urgent, critical

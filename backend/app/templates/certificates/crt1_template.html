@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certificate Page 1 of 3</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            font-size: 10pt;
+            line-height: 1.2;
+        }
+        
+        .header {
+            text-align: right;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .cert-info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+        
+        .cert-info-table td {
+            border: 1px solid black;
+            padding: 4px 8px;
+            vertical-align: top;
+        }
+        
+        .section-header {
+            font-weight: bold;
+            font-size: 11pt;
+            margin: 15px 0 10px 0;
+            text-align: center;
+        }
+        
+        .customer-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+        
+        .customer-table td {
+            border: 1px solid black;
+            padding: 4px 8px;
+            vertical-align: top;
+        }
+        
+        .device-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+        
+        .device-table td {
+            border: 1px solid black;
+            padding: 4px 8px;
+            vertical-align: top;
+        }
+        
+        .procedure-text {
+            margin: 15px 0;
+            font-size: 9pt;
+        }
+        
+        .standards-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+        
+        .standards-table td, .standards-table th {
+            border: 1px solid black;
+            padding: 4px 8px;
+            vertical-align: top;
+            text-align: left;
+        }
+        
+        .standards-table th {
+            background-color: #f0f0f0;
+            font-weight: bold;
+        }
+        
+        .environmental {
+            margin: 15px 0;
+        }
+        
+        .signatures {
+            margin-top: 30px;
+        }
+        
+        .signature-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .signature-table td {
+            padding: 20px 8px;
+            text-align: center;
+            vertical-align: bottom;
+        }
+        
+        .footer-notes {
+            margin-top: 20px;
+            font-size: 8pt;
+            line-height: 1.3;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">Page 1 of 3</div>
+    
+    <!-- Certificate Information -->
+    <table class="cert-info-table">
+        <tr>
+            <td><strong>Certificate No</strong></td>
+            <td><strong>:</strong></td>
+            <td>{{ cert_data.certificate_number }}</td>
+            <td width="50px"></td>
+            <td><strong>Date of Calibration</strong></td>
+            <td><strong>:</strong></td>
+            <td>{{ cert_data.calibration_date }}</td>
+        </tr>
+        <tr>
+            <td><strong>NEPL ID</strong></td>
+            <td><strong>:</strong></td>
+            <td>{{ cert_data.nepl_id }}</td>
+            <td></td>
+            <td><strong>Recommended Cal Due Date</strong></td>
+            <td><strong>:</strong></td>
+            <td>{{ cert_data.recommended_due_date }}</td>
+        </tr>
+        <tr>
+            <td><strong>ULR No.</strong></td>
+            <td><strong>:</strong></td>
+            <td>{{ cert_data.ulr_number }}</td>
+            <td></td>
+            <td><strong>Date Of Issue:</strong></td>
+            <td><strong>:</strong></td>
+            <td>{{ cert_data.issue_date }}</td>
+        </tr>
+    </table>
+    
+    <!-- Field of Parameter -->
+    <div class="section-header">Field of Parameter : Torque</div>
+    
+    <!-- Customer Information -->
+    <table class="customer-table">
+        <tr>
+            <td colspan="4"><strong>Customer Name &amp; Address :</strong></td>
+            <td colspan="3"><strong>Customer Reference:</strong></td>
+        </tr>
+        <tr>
+            <td colspan="4">{{ cert_data.customer_name }}</td>
+            <td><strong>Reference DC No</strong></td>
+            <td><strong>:</strong></td>
+            <td>{{ cert_data.customer_dc_no }}</td>
+        </tr>
+        <tr>
+            <td colspan="4">{{ cert_data.customer_address }}</td>
+            <td><strong>Reference No Date</strong></td>
+            <td><strong>:</strong></td>
+            <td>{{ cert_data.customer_dc_date }}</td>
+        </tr>
+        <tr>
+            <td colspan="4"></td>
+            <td><strong>Date of Receipt</strong></td>
+            <td><strong>:</strong></td>
+            <td>{{ cert_data.date_received }}</td>
+        </tr>
+        <tr>
+            <td colspan="4"></td>
+            <td><strong>Status of item on Receipt</strong></td>
+            <td><strong>:</strong></td>
+            <td>{{ cert_data.condition_on_receipt }}</td>
+        </tr>
+    </table>
+    
+    <!-- Device Under Calibration -->
+    <div class="section-header">Device Under Calibration :</div>
+    <table class="device-table">
+        <tr>
+            <td><strong>Nomenclature</strong></td>
+            <td><strong>:</strong></td>
+            <td>{{ cert_data.equipment_name }}</td>
+            <td></td>
+            <td><strong>Units of measurement</strong></td>
+            <td><strong>:</strong></td>
+            <td>{{ cert_data.unit }}</td>
+        </tr>
+        <tr>
+            <td><strong>Make/Model</strong></td>
+            <td><strong>:</strong></td>
+            <td>{{ cert_data.make_model }}</td>
+            <td></td>
+            <td><strong>Calibration Mode</strong></td>
+            <td><strong>:</strong></td>
+            <td>{{ cert_data.calibration_mode }}</td>
+        </tr>
+        <tr>
+            <td><strong>Type/Classification</strong></td>
+            <td><strong>:</strong></td>
+            <td>{{ cert_data.equipment_type }} {{ cert_data.classification }}</td>
+            <td></td>
+            <td><strong>Place of Calibration</strong></td>
+            <td><strong>:</strong></td>
+            <td>{{ cert_data.place_of_calibration }}</td>
+        </tr>
+        <tr>
+            <td><strong>Sl No</strong></td>
+            <td><strong>:</strong></td>
+            <td>{{ cert_data.serial_number }}</td>
+            <td></td>
+            <td><strong>Resolution of pressure gauge</strong></td>
+            <td><strong>:</strong></td>
+            <td>0.1 bar</td>
+        </tr>
+        <tr>
+            <td><strong>Torque Range</strong></td>
+            <td><strong>:</strong></td>
+            <td>{{ cert_data.range }} {{ cert_data.unit }}</td>
+            <td colspan="4"></td>
+        </tr>
+    </table>
+    
+    <!-- Calibration Procedure -->
+    <div class="procedure-text">
+        <strong>Calibration Procedure :</strong> {{ cert_data.calibration_procedure }}
+    </div>
+    
+    <!-- Reference Standards -->
+    <div class="section-header">Reference Standard Details</div>
+    <table class="standards-table">
+        <tr>
+            <th>Standard</th>
+            <th>Details</th>
+        </tr>
+        {% for standard in cert_data.standards %}
+        <tr>
+            <td rowspan="7"><strong>Standard {{ loop.index }}</strong></td>
+            <td><strong>Nomenclature:</strong> {{ standard.name }}</td>
+        </tr>
+        <tr>
+            <td><strong>Manufacturer:</strong> {{ standard.manufacturer }}</td>
+        </tr>
+        <tr>
+            <td><strong>Model/serial No:</strong> {{ standard.model_serial }}</td>
+        </tr>
+        <tr>
+            <td><strong>Uncertainty:</strong> {{ standard.uncertainty }}</td>
+        </tr>
+        <tr>
+            <td><strong>Certificate No:</strong> {{ standard.certificate_no }}</td>
+        </tr>
+        <tr>
+            <td><strong>Calibration Valid Upto:</strong> {{ standard.valid_upto }}</td>
+        </tr>
+        <tr>
+            <td><strong>Traceability:</strong> {{ standard.traceability }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    
+    <!-- Environmental Conditions -->
+    <div class="environmental">
+        <strong>Environmental condition:</strong> 
+        Temp {{ cert_data.temp_before }}°C  
+        Humidity {{ (cert_data.humidity_before * 100) | round(1) }}%
+    </div>
+    
+    <!-- Signatures -->
+    <div class="signatures">
+        <table class="signature-table">
+            <tr>
+                <td><strong>{{ cert_data.checked_by }}</strong></td>
+                <td></td>
+                <td></td>
+                <td><strong>Authorised Signatory</strong></td>
+            </tr>
+            <tr>
+                <td><br><br><br></td>
+                <td></td>
+                <td></td>
+                <td><br><br><br></td>
+            </tr>
+            <tr>
+                <td><strong>{{ cert_data.calibration_engineer }}</strong></td>
+                <td></td>
+                <td></td>
+                <td><strong>{{ cert_data.authorised_signatory }}</strong></td>
+            </tr>
+        </table>
+    </div>
+    
+    <!-- Footer Notes -->
+    <div class="footer-notes">
+        <p>- All Calibrations are traceable to National/International standards as required in ISO/IEC 17025</p>
+        <p>- This Certificate refers only to the item calibrated and shall not be reproduced except in full, without approval of the Laboratory.</p>
+        <p>{{ cert_data.company_name }}</p>
+        <p>- Results reported are valid at the time of and under the stated conditions of measurement.</p>
+        <p>- Conformity Statement is given only when requested by the customer as per the Decision Rule applied.</p>
+    </div>
+</body>
+</html>

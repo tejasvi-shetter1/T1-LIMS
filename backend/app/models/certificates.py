@@ -1,60 +1,97 @@
-from sqlalchemy import Column, Integer, String, Text, Date, ForeignKey, JSON, Boolean, LargeBinary
+from sqlalchemy import Column, Integer, String, Text, DateTime, Boolean, ForeignKey, LargeBinary, Date, JSON
 from sqlalchemy.orm import relationship
 from app.database import Base
 from app.models.base import TimestampMixin, AuditMixin
 import enum
+from datetime import datetime
 
 class CertificateStatus(str, enum.Enum):
     DRAFT = "draft"
-    UNDER_REVIEW = "under_review"
+    PENDING = "pending"
+    GENERATING = "generating"
+    COMPLETED = "completed"
+    FAILED = "failed"
     APPROVED = "approved"
-    ISSUED = "issued"
     DELIVERED = "delivered"
-    REVOKED = "revoked"
 
 class CertificateType(str, enum.Enum):
-    CRT1 = "crt1"  # Page 1 - Header and standards info
-    CRT2 = "crt2"  # Page 2 - Measurement results
-    CRT3 = "crt3"  # Page 3 - Uncertainties and conclusions
+    CRT1 = "Crt1"
+    CRT2 = "Crt2"
+    CRT3 = "Crt3"
+
+class GenerationStatus(str, enum.Enum):
+    PENDING = "pending"
+    PROCESSING = "processing"
+    COMPLETED = "completed"
+    FAILED = "failed"
+
+class CertificateTemplate(Base, TimestampMixin, AuditMixin):
+    __tablename__ = "certificate_templates"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    template_name = Column(String(100), nullable=False)
+    template_type = Column(String(20), nullable=False)  # Crt1, Crt2, Crt3
+    equipment_types = Column(JSON)  # List of applicable equipment types
+    template_path = Column(String(255), nullable=False)
+    template_content = Column(Text)  # HTML template content
+    is_active = Column(Boolean, default=True)
+    version = Column(String(10), default="1.0")
+    
+    # Relationships
+    certificates = relationship("Certificate", back_populates="template")
 
 class Certificate(Base, TimestampMixin, AuditMixin):
     __tablename__ = "certificates"
     
     id = Column(Integer, primary_key=True, index=True)
     job_id = Column(Integer, ForeignKey("jobs.id"), nullable=False)
+    template_id = Column(Integer, ForeignKey("certificate_templates.id"))
     
     # Certificate Identification
-    certificate_number = Column(String(255), unique=True, nullable=False)  # e.g., "NEPL / C / 2025 / 98-9"
-    ulr_number = Column(String(255))                                       # e.g., "CC446625000000XYZ"
+    certificate_number = Column(String(255), unique=True, nullable=False)
+    ulr_number = Column(String(255))
     revision_number = Column(Integer, default=0)
+    certificate_type = Column(String(20))  # Crt1, Crt2, Crt3
     
-    # Certificate Details
-    certificate_type = Column(String(20))                                  # From CertificateType enum
+    # Certificate Dates
     issue_date = Column(Date, nullable=False)
     calibration_date = Column(Date, nullable=False)
-    recommended_due_date = Column(Date)                                     # Next calibration due
+    recommended_due_date = Column(Date)
     
-    # Certificate Content
-    template_used = Column(String(255))                                     # Template version/name
-    certificate_data = Column(JSON)                                         # All certificate data
-    pdf_content = Column(LargeBinary)                                       # Generated PDF
+    # Generation Workflow
+    generation_status = Column(String(50), default="pending")
+    generation_started_at = Column(DateTime(timezone=True))
+    generation_completed_at = Column(DateTime(timezone=True))
+    generation_error = Column(Text)
+    
+    # Template and Data
+    template_used = Column(String(255))
+    certificate_data = Column(JSON)  # All data used for generation
+    auto_populated_fields = Column(JSON)  # Fields auto-populated from data
+    manual_override_fields = Column(JSON)  # Manual overrides
+    
+    # File Details
+    pdf_content = Column(LargeBinary)
+    file_size_bytes = Column(Integer)
+    file_hash = Column(String(64))
     
     # Security Features
     password_protected = Column(Boolean, default=False)
-    password_hash = Column(String(255))                                     # If password protected
-    digital_signature = Column(Text)                                        # Digital signature if required
-    watermark_applied = Column(Boolean, default=False)
+    password_hash = Column(String(255))
+    digital_signature = Column(Text)
+    watermark_applied = Column(Boolean, default=True)
     
-    # Status and Approval
-    status = Column(String(50), default=CertificateStatus.DRAFT)
-    reviewed_by = Column(String(255))                                       # Calibration Engineer
-    approved_by = Column(String(255))                                       # Authorized Signatory
+    # Workflow Status
+    status = Column(String(50), default="draft")
+    reviewed_by = Column(String(255))
+    approved_by = Column(String(255))
     
     # Delivery Tracking
-    delivery_method = Column(String(100))                                   # email, portal, courier
+    delivery_method = Column(String(100))
     delivered_at = Column(Date)
     delivery_confirmation = Column(Boolean, default=False)
     download_count = Column(Integer, default=0)
     
     # Relationships
     job = relationship("Job", back_populates="certificates")
+    template = relationship("CertificateTemplate", back_populates="certificates")

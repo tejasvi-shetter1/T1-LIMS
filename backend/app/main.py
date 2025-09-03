@@ -4,6 +4,7 @@ from app.config import settings
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.openapi.docs import get_swagger_ui_html
 
+
 # Create FastAPI app
 app = FastAPI(
     title="NEPL LIMS API",
@@ -11,10 +12,13 @@ app = FastAPI(
     version="1.0.0"
 )
 
+
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 
-# Import routers
-from app.api.v1 import srf, inward, measurements
+
+# Import routers - ADDED deviations import
+from app.api.v1 import srf, inward, measurements, deviations, certificates
+
 
 @app.get("/docs", include_in_schema=False)
 async def custom_swagger_ui_html():
@@ -27,6 +31,7 @@ async def custom_swagger_ui_html():
         }
     )
 
+
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
@@ -36,18 +41,23 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @app.get("/")
 async def root():
     return {"message": "NEPL LIMS API v1.0", "status": "running"}
+
 
 @app.get("/health")
 async def health_check():
     return {"status": "healthy", "database": "connected"}
 
-# Include routers
+
+# Include routers - ADDED deviations router
 app.include_router(srf.router, prefix=f"{settings.API_V1_STR}/srf", tags=["SRF"])
 app.include_router(inward.router, prefix=f"{settings.API_V1_STR}/inward", tags=["Inward"])
 app.include_router(measurements.router, prefix=f"{settings.API_V1_STR}/measurements", tags=["Measurements"])
+app.include_router(deviations.router, prefix=f"{settings.API_V1_STR}/deviations", tags=["Deviations"])
+app.include_router(certificates.router, prefix=f"{settings.API_V1_STR}/certificates", tags=["Certificates"])
 
 if __name__ == "__main__":
     import uvicorn

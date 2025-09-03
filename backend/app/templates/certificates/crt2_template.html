@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certificate Page 2 of 3</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            font-size: 9pt;
+            line-height: 1.1;
+        }
+        
+        .header {
+            text-align: right;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .cert-info {
+            margin-bottom: 15px;
+        }
+        
+        .section-header {
+            font-weight: bold;
+            font-size: 10pt;
+            margin: 15px 0 8px 0;
+        }
+        
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+            font-size: 8pt;
+        }
+        
+        .results-table td, .results-table th {
+            border: 1px solid black;
+            padding: 3px 5px;
+            text-align: center;
+            vertical-align: middle;
+        }
+        
+        .results-table th {
+            background-color: #f0f0f0;
+            font-weight: bold;
+        }
+        
+        .signatures {
+            margin-top: 30px;
+        }
+        
+        .signature-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .signature-table td {
+            padding: 20px 8px;
+            text-align: center;
+            vertical-align: bottom;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">Page 2 of 3</div>
+    
+    <!-- Certificate Info -->
+    <div class="cert-info">
+        <strong>Certificate No : {{ cert_data.certificate_number }}</strong>
+        <span style="float: right;"><strong>Date of Calibration : {{ cert_data.calibration_date }}</strong></span>
+    </div>
+    
+    <!-- Calibration Results Header -->
+    <div class="section-header">Calibration Results</div>
+    
+    <!-- A. Repeatability -->
+    <div class="section-header">A. Repeatability</div>
+    <table class="results-table">
+        <thead>
+            <tr>
+                <th rowspan="2">Set Pressure<br>(bar)</th>
+                <th rowspan="2">Target Value<br>Xa (Nm)</th>
+                <th colspan="5">Reference Value (Nm)</th>
+                <th rowspan="2">Measurement error<br>(Nm)</th>
+                <th rowspan="2">Relative Measurement error<br>(in %)</th>
+                <th rowspan="2">Repeatability error<br>(Nm)</th>
+                <th rowspan="2">in %</th>
+            </tr>
+            <tr>
+                <th>1</th>
+                <th>2</th>
+                <th>3</th>
+                <th>4</th>
+                <th>5</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for reading in cert_data.measurement_results.repeatability_data %}
+            <tr>
+                <td rowspan="5">{{ reading.set_pressure }}</td>
+                <td rowspan="5">{{ reading.target_value }}</td>
+                <td>{{ reading.readings[0] }}</td>
+                <td>{{ reading.readings[1] }}</td>
+                <td>{{ reading.readings[2] }}</td>
+                <td>{{ reading.readings[3] }}</td>
+                <td>{{ reading.readings[4] }}</td>
+                <td rowspan="5">{{ reading.error }}</td>
+                <td rowspan="5">{{ reading.relative_error | round(2) }}</td>
+                <td rowspan="5">{{ reading.repeatability_error | round(2) }}</td>
+                <td rowspan="5">{{ reading.repeatability_percent | round(5) }}</td>
+            </tr>
+            <tr><td>{{ reading.readings[0] }}</td><td>{{ reading.readings[1] }}</td><td>{{ reading.readings[2] }}</td><td>{{ reading.readings[3] }}</td><td>{{ reading.readings[4] }}</td></tr>
+            <tr><td>{{ reading.readings[0] }}</td><td>{{ reading.readings[1] }}</td><td>{{ reading.readings[2] }}</td><td>{{ reading.readings[3] }}</td><td>{{ reading.readings[4] }}</td></tr>
+            <tr><td>{{ reading.readings[0] }}</td><td>{{ reading.readings[1] }}</td><td>{{ reading.readings[2] }}</td><td>{{ reading.readings[3] }}</td><td>{{ reading.readings[4] }}</td></tr>
+            <tr><td>{{ reading.readings[0] }}</td><td>{{ reading.readings[1] }}</td><td>{{ reading.readings[2] }}</td><td>{{ reading.readings[3] }}</td><td>{{ reading.readings[4] }}</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <!-- B. Reproducibility -->
+    <div class="section-header">B. Reproducibility</div>
+    <table class="results-table">
+        <thead>
+            <tr>
+                <th>Target Value<br>Xa (Nm)</th>
+                <th>Series-1<br>Mean Value (Nm)</th>
+                <th>Series-2<br>Mean Value (Nm)</th>
+                <th>Series-3<br>Mean Value (Nm)</th>
+                <th>Series-4<br>Mean Value (Nm)</th>
+                <th>Reproducibility error<br>(in Nm)</th>
+                <th>in %</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>{{ cert_data.measurement_results.reproducibility_data.target_value }}</td>
+                <td>{{ cert_data.measurement_results.reproducibility_data.series_means[0] | round(2) }}</td>
+                <td>{{ cert_data.measurement_results.reproducibility_data.series_means[1] | round(2) }}</td>
+                <td>{{ cert_data.measurement_results.reproducibility_data.series_means[2] | round(2) }}</td>
+                <td>{{ cert_data.measurement_results.reproducibility_data.series_means[3] | round(2) }}</td>
+                <td>{{ cert_data.measurement_results.reproducibility_data.reproducibility_error | round(2) }}</td>
+                <td>{{ cert_data.measurement_results.reproducibility_data.reproducibility_percent | round(6) }}</td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <!-- C. Geometric effect of the output drive -->
+    <div class="section-header">C. Geometric effect of the output drive of the torque tool</div>
+    <table class="results-table">
+        <thead>
+            <tr>
+                <th>Target Value<br>Xa (Nm)</th>
+                <th>Position 0°<br>Mean Value (Nm)</th>
+                <th>Position 90°<br>Mean Value (Nm)</th>
+                <th>Position 180°<br>Mean Value (Nm)</th>
+                <th>Position 270°<br>Mean Value (Nm)</th>
+                <th>Error due to output drive<br>(in Nm)</th>
+                <th>in %</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>{{ cert_data.measurement_results.reproducibility_data.target_value }}</td>
+                <td>{{ cert_data.measurement_results.geometric_effects.output_drive.mean_values[0] }}</td>
+                <td>{{ cert_data.measurement_results.geometric_effects.output_drive.mean_values[1] }}</td>
+                <td>{{ cert_data.measurement_results.geometric_effects.output_drive.mean_values[2] }}</td>
+                <td>{{ cert_data.measurement_results.geometric_effects.output_drive.mean_values[3] }}</td>
+                <td>{{ cert_data.measurement_results.geometric_effects.output_drive.error }}</td>
+                <td>{{ cert_data.measurement_results.geometric_effects.output_drive.error_percent | round(6) }}</td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <!-- Signatures -->
+    <div class="signatures">
+        <table class="signature-table">
+            <tr>
+                <td><strong>{{ cert_data.checked_by }}</strong></td>
+                <td></td>
+                <td></td>
+                <td><strong>Authorised Signatory</strong></td>
+            </tr>
+            <tr>
+                <td><br><br><br></td>
+                <td></td>
+                <td></td>
+                <td><br><br><br></td>
+            </tr>
+            <tr>
+                <td><strong>{{ cert_data.calibration_engineer }}</strong></td>
+                <td></td>
+                <td></td>
+                <td><strong>{{ cert_data.authorised_signatory }}</strong></td>
+            </tr>
+        </table>
+    </div>
+</body>
+</html>
