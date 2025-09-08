@@ -15,4 +15,6 @@ class Customer(Base, TimestampMixin, SoftDeleteMixin):
     is_active = Column(Boolean, default=True)
     
     # Relationships
+    users = relationship("User", back_populates="customer")  # Add this line
+    
     srfs = relationship("SRF", back_populates="customer")

@@ -1,64 +1,53 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.config import settings
-from fastapi.middleware.gzip import GZipMiddleware
-from fastapi.openapi.docs import get_swagger_ui_html
+from app.api.v1 import api_router
+import logging
 
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-# Create FastAPI app
+# Application configuration
+PROJECT_NAME = "NEPL LIMS - Calibration Certificate Tracking & Management System"
+VERSION = "1.0.0"
+CORS_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:8080"
+]
+
+# Create FastAPI application
 app = FastAPI(
-    title="NEPL LIMS API",
-    description="Calibration Certificate Tracking & Management System",
-    version="1.0.0"
+    title=PROJECT_NAME,
+    version=VERSION,
+    description="LIMS for Nextage Engineering Pvt. Ltd.",
+    openapi_url="/api/v1/openapi.json"
 )
-
-
-app.add_middleware(GZipMiddleware, minimum_size=1000)
-
-
-# Import routers - ADDED deviations import
-from app.api.v1 import srf, inward, measurements, deviations, certificates
-
-
-@app.get("/docs", include_in_schema=False)
-async def custom_swagger_ui_html():
-    return get_swagger_ui_html(
-        openapi_url=app.openapi_url,
-        title=app.title + " - Swagger UI",
-        swagger_ui_parameters={
-            "syntaxHighlight": False,  # Disable syntax highlighting
-            "defaultModelRendering": "model"  # Show schema instead of examples
-        }
-    )
-
 
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.BACKEND_CORS_ORIGINS,
+    allow_origins=CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+# Include API routers
+app.include_router(api_router, prefix="/api/v1")
 
 @app.get("/")
 async def root():
-    return {"message": "NEPL LIMS API v1.0", "status": "running"}
-
+    return {
+        "message": "NEPL LIMS API",
+        "version": VERSION,
+        "status": "running"
+    }
 
 @app.get("/health")
 async def health_check():
-    return {"status": "healthy", "database": "connected"}
-
-
-# Include routers - ADDED deviations router
-app.include_router(srf.router, prefix=f"{settings.API_V1_STR}/srf", tags=["SRF"])
-app.include_router(inward.router, prefix=f"{settings.API_V1_STR}/inward", tags=["Inward"])
-app.include_router(measurements.router, prefix=f"{settings.API_V1_STR}/measurements", tags=["Measurements"])
-app.include_router(deviations.router, prefix=f"{settings.API_V1_STR}/deviations", tags=["Deviations"])
-app.include_router(certificates.router, prefix=f"{settings.API_V1_STR}/certificates", tags=["Certificates"])
+    return {"status": "healthy"}
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("app.main:app", host="127.0.0.1", port=8000, reload=True)
+    uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)

@@ -20,10 +20,10 @@ for pwd in test_passwords:
             user="postgres",
             password=pwd
         )
-        print(f"✅ SUCCESS! Correct password is: '{pwd}'")
+        print(f"SUCCESS! Correct password is: '{pwd}'")
         conn.close()
         break
     except Exception as e:
-        print(f"❌ Failed with password: '{pwd}' - {str(e)[:50]}")
+        print(f"Failed with password: '{pwd}' - {str(e)[:50]}")
 
 print("\nIf none worked, try the pg_hba.conf fix below...")

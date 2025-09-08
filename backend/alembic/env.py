@@ -1,25 +1,28 @@
-from logging.config import fileConfig
-from sqlalchemy import engine_from_config, pool
-from alembic import context
 import sys
 import os
 
-# Add the parent directory to the path
-sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+# Add parent directory to sys.path FIRST (before any app imports)
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from logging.config import fileConfig
+from sqlalchemy import engine_from_config, pool
+from alembic import context
+
+# Import your Base and ALL models AFTER fixing sys.path
 from app.database import Base
+from app.models import (
+    customers, srf, inward, measurements, 
+    equipment, users, standards  # NEW: Include Phase 1 models
+)
 
-# Import all model files to ensure they're registered with Base.metadata
-from app.models import customers, srf, inward, measurements  # Add measurements here
-
-# this is the Alembic Config object
+# This is the Alembic Config object
 config = context.config
 
 # Interpret the config file for Python logging
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# Set the target metadata
+# Set the target metadata for autogenerate support
 target_metadata = Base.metadata
 
 def run_migrations_offline():
@@ -45,7 +48,8 @@ def run_migrations_online():
 
     with connectable.connect() as connection:
         context.configure(
-            connection=connection, target_metadata=target_metadata
+            connection=connection, 
+            target_metadata=target_metadata
         )
 
         with context.begin_transaction():

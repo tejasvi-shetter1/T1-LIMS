@@ -146,7 +146,7 @@ class MeasurementService:
             "series_data": [
                 {
                     "series_number": i + 1,
-                    "measurements": series.measurements,  # ✅ Use dot notation
+                    "measurements": series.measurements,  #  Use dot notation
                     "mean": float(series_means[i])
                 }
                 for i, series in enumerate(series_data)

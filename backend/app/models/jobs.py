@@ -5,7 +5,6 @@ from app.database import Base
 from app.models.base import TimestampMixin, AuditMixin
 import enum
 
-
 class JobStatus(str, enum.Enum):
     PENDING = "pending"
     IN_PROGRESS = "in_progress"
@@ -18,12 +17,14 @@ class JobStatus(str, enum.Enum):
     COMPLETED = "completed"
     ON_HOLD = "on_hold"
 
-
 class Job(Base, TimestampMixin, AuditMixin):
     __tablename__ = "jobs"
     
     id = Column(Integer, primary_key=True, index=True)
     inward_id = Column(Integer, ForeignKey("inward.id"), nullable=False)
+    
+    # NEW: Equipment Type Association for Dynamic Logic
+    equipment_type_id = Column(Integer, ForeignKey("equipment_types.id"))
     
     # Job Identification
     job_number = Column(String(100), unique=True, nullable=False)  # Auto-generated: JOB-25001, JOB-25002
@@ -91,3 +92,6 @@ class Job(Base, TimestampMixin, AuditMixin):
     standards = relationship("JobStandard", back_populates="job")
     deviations = relationship("DeviationReport", back_populates="job")
     certificates = relationship("Certificate", back_populates="job")
+    
+    # NEW: Equipment Type Relationship for Dynamic Logic
+    equipment_type = relationship("EquipmentType", back_populates="jobs")

@@ -62,7 +62,7 @@ async def update_srf_status(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# ✅ NEW ENDPOINT - Add this to your existing file
+#  NEW ENDPOINT - Add this to your existing file
 @router.get("/{srf_id}/items/{item_id}/inward-eligible")
 async def check_inward_eligible(
     srf_id: int, 

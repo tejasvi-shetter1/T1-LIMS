@@ -51,7 +51,7 @@ class SRFCrud:
                     customer_id=srf_data.customer_id,
                     contact_person=srf_data.contact_person,
                     date_received=srf_data.date_received or date.today(),
-                    status="submitted",  # ✅ Use lowercase to match enum
+                    status="submitted",  #  Use lowercase to match enum
                     priority=srf_data.priority,
                     special_instructions=srf_data.special_instructions,
                     nextage_contract_reference=srf_data.nextage_contract_reference,

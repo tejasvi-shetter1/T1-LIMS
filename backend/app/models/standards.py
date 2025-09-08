@@ -1,8 +1,9 @@
-from sqlalchemy import Column, Integer, String, Text, Date, Boolean, ForeignKey
+from sqlalchemy import Column, Integer, String, Text, Date, Boolean, ForeignKey, Float
 from sqlalchemy.types import DECIMAL as Decimal
 from sqlalchemy.orm import relationship
 from app.database import Base
 from app.models.base import TimestampMixin
+
 
 class Standard(Base, TimestampMixin):
     __tablename__ = "standards"
@@ -24,6 +25,12 @@ class Standard(Base, TimestampMixin):
     range_min = Column(Decimal(15, 4))                     # e.g., 1000
     range_max = Column(Decimal(15, 4))                     # e.g., 40000
     
+    # NEW: Equipment Category Association for Dynamic Logic
+    equipment_category_id = Column(Integer, ForeignKey("equipment_categories.id"))
+    applicable_range_min = Column(Float)
+    applicable_range_max = Column(Float)
+    discipline = Column(String(50))  # "Torque", "Pressure", "Electrical"
+    
     # Traceability Information
     certificate_no = Column(String(255))                   # e.g., "SCPL/CC/3685/03/2023-2024"
     calibration_valid_upto = Column(Date, nullable=False)  # e.g., "2026-03-13"
@@ -35,6 +42,10 @@ class Standard(Base, TimestampMixin):
     
     # Relationships
     job_standards = relationship("JobStandard", back_populates="standard")
+    
+    # NEW: Equipment Dynamic Selection Rules Relationship
+    selection_rules = relationship("StandardsSelectionRule", back_populates="standard")
+
 
 class JobStandard(Base, TimestampMixin):
     __tablename__ = "job_standards"

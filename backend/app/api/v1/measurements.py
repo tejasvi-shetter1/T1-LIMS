@@ -128,7 +128,7 @@ async def calculate_measurement_uncertainty(
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-# ✅ ENHANCED VALIDATION ENDPOINT WITH PROPER ERROR HANDLING
+# ENHANCED VALIDATION ENDPOINT WITH PROPER ERROR HANDLING
 @router.get("/{measurement_id}/validation")
 async def validate_measurement_results(
     measurement_id: int,
@@ -170,7 +170,7 @@ async def validate_measurement_results(
     except Exception as e:
         # Enhanced error logging for debugging
         error_detail = f"Validation processing failed for measurement {measurement_id}: {str(e)}"
-        print(f"❌ {error_detail}")
+        print(f"{error_detail}")
         
         raise HTTPException(
             status_code=500, 

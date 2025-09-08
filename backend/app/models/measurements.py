@@ -93,7 +93,10 @@ class MeasurementTemplate(Base, TimestampMixin):
     
     # Template Configuration
     template_name = Column(String(255), nullable=False)             # "Torque Wrench Standard", "Hydraulic Wrench Standard"
-    equipment_type = Column(String(100), nullable=False)            # "torque", "pressure", "dimension"
+    
+    # 🔥 CRITICAL: Equipment Type Association for Dynamic Logic
+    equipment_type_id = Column(Integer, ForeignKey("equipment_types.id"), nullable=False)
+    
     calibration_method = Column(String(255))                        # "ISO 6789-1 & 2:2017"
     
     # Measurement Plan Configuration (from Excel analysis)
@@ -108,3 +111,6 @@ class MeasurementTemplate(Base, TimestampMixin):
     formula_pack = Column(JSON)                                     # Calculation formulas for this type
     
     is_active = Column(Boolean, default=True)
+    
+    # 🔥 CRITICAL: Equipment Type Relationship for Dynamic Logic
+    equipment_type = relationship("EquipmentType", back_populates="measurement_templates")
