@@ -13,7 +13,7 @@ security = HTTPBearer()
 class LoginRequest(BaseModel):
     username: str
     password: str
-    user_type: UserType  # "staff" or "customer"
+    user_type: UserType  # "staff" or "customer" selection
 
 class RegisterRequest(BaseModel):
     username: str
