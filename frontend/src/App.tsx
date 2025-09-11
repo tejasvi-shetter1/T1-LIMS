@@ -1,49 +1,137 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import React, { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Provider } from 'react-redux';
+import { store } from './store';
+import { useDispatch, useSelector } from 'react-redux';
+import { initializeAuth } from './store/slices/authSlice';
+import { RootState } from './store';
+import { ROUTES } from './utils/constants';
 
-const queryClient = new QueryClient();
+// Pages
+import LoginPage from './pages/auth/LoginPage';
+import LoadingSpinner from './components/common/LoadingSpinner';
 
-function App() {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <Router>
-        <div className="min-h-screen bg-gray-100">
-          <header className="bg-blue-600 text-white p-4">
-            <h1 className="text-2xl font-bold">NEPL LIMS - Calibration Management System</h1>
-          </header>
-          
-          <main className="container mx-auto mt-8 p-4">
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-            </Routes>
-          </main>
-        </div>
-      </Router>
-    </QueryClientProvider>
-  );
-}
+// Temporary placeholder components (we'll build these next)
+const CustomerDashboard = () => (
+  <div className="p-8">
+    <h1 className="text-2xl font-bold">Customer Dashboard</h1>
+    <p>Customer portal coming soon...</p>
+  </div>
+);
 
-// Simple Dashboard component
-const Dashboard = () => {
-  return (
-    <div className="bg-white rounded-lg shadow-md p-6">
-      <h2 className="text-xl font-semibold mb-4">Dashboard</h2>
-      <p>Welcome to NEPL LIMS! System is running successfully.</p>
-      <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-blue-50 p-4 rounded border">
-          <h3 className="font-medium text-blue-800">Total SRFs</h3>
-          <p className="text-2xl font-bold text-blue-600">0</p>
-        </div>
-        <div className="bg-green-50 p-4 rounded border">
-          <h3 className="font-medium text-green-800">Active Jobs</h3>
-          <p className="text-2xl font-bold text-green-600">0</p>
-        </div>
-        <div className="bg-yellow-50 p-4 rounded border">
-          <h3 className="font-medium text-yellow-800">Pending Certificates</h3>
-          <p className="text-2xl font-bold text-yellow-600">0</p>
-        </div>
+const StaffDashboard = () => (
+  <div className="p-8">
+    <h1 className="text-2xl font-bold">Staff Dashboard</h1>
+    <p>Staff portal coming soon...</p>
+  </div>
+);
+
+const ProtectedRoute: React.FC<{
+  children: React.ReactNode;
+  requiredUserType?: 'staff' | 'customer';
+  requiredRole?: string[];
+}> = ({ children, requiredUserType, requiredRole }) => {
+  const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
+
+  if (!isAuthenticated) {
+    return <Navigate to={ROUTES.LOGIN} replace />;
+  }
+
+  if (requiredUserType && user?.user_type !== requiredUserType) {
+    return <Navigate to={ROUTES.LOGIN} replace />;
+  }
+
+  if (requiredRole && !requiredRole.includes(user?.role || '')) {
+    return <Navigate to={ROUTES.LOGIN} replace />;
+  }
+
+  return <>{children}</>;
+};
+
+const AppContent: React.FC = () => {
+  const dispatch = useDispatch();
+  const { isAuthenticated, isLoading } = useSelector((state: RootState) => state.auth);
+
+  useEffect(() => {
+    dispatch(initializeAuth());
+  }, [dispatch]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <LoadingSpinner size="lg" />
       </div>
-    </div>
+    );
+  }
+
+  return (
+    <Router>
+      <Routes>
+        {/* Public Routes */}
+        <Route path={ROUTES.LOGIN} element={<LoginPage />} />
+        
+        {/* Customer Routes */}
+        <Route
+          path={ROUTES.CUSTOMER_DASHBOARD}
+          element={
+            <ProtectedRoute requiredUserType="customer">
+              <CustomerDashboard />
+            </ProtectedRoute>
+          }
+        />
+        
+        {/* Staff Routes */}
+        <Route
+          path={ROUTES.STAFF_DASHBOARD}
+          element={
+            <ProtectedRoute requiredUserType="staff">
+              <StaffDashboard />
+            </ProtectedRoute>
+          }
+        />
+        
+        {/* Default Redirects */}
+        <Route
+          path="/"
+          element={
+            isAuthenticated ? (
+              <Navigate to={ROUTES.STAFF_DASHBOARD} replace />
+            ) : (
+              <Navigate to={ROUTES.LOGIN} replace />
+            )
+          }
+        />
+        
+        {/* 404 - Catch all */}
+        <Route
+          path="*"
+          element={
+            <div className="min-h-screen flex items-center justify-center">
+              <div className="text-center">
+                <h1 className="text-4xl font-bold text-gray-900">404</h1>
+                <p className="text-gray-600">Page not found</p>
+                <button
+                  onClick={() => window.history.back()}
+                  className="mt-4 btn-primary"
+                >
+                  Go Back
+                </button>
+              </div>
+            </div>
+          }
+        />
+      </Routes>
+    </Router>
+  );
+};
+
+const App: React.FC = () => {
+  return (
+    <Provider store={store}>
+      <div className="App">
+        <AppContent />
+      </div>
+    </Provider>
   );
 };
 
