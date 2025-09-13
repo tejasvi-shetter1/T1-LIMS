@@ -19,6 +19,7 @@ __pycache__/
 # Ignore IDE/editor folders
 .vscode/
 .idea/
+.qodo/
 
 # Ignore test and coverage outputs
 .pytest_cache/
@@ -27,8 +28,8 @@ __pycache__/
 # Ignore logs
 *.log
 
-# Ignore Alembic migration cache
-alembic.ini
+# Ignore Alembic cache (not alembic.ini itself!)
+alembic/versions/__pycache__/
 
 # Ignore database files
 *.sqlite3

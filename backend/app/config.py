@@ -3,7 +3,7 @@ from typing import Optional
 
 class Settings(BaseSettings):
     # Database
-    DATABASE_URL: str = "postgresql://postgres:Aimlsn%%402025@localhost/nepl_lims_local"
+    DATABASE_URL: str = "postgresql://postgres:Aimlsn%402025@localhost/nepl_lims_local"
     
     # Application
     SECRET_KEY: str = "nepl-lims-local-dev-secret-key-2025"

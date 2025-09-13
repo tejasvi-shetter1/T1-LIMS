@@ -1,3 +1,4 @@
+# app/models/equipment.py (CORRECTED VERSION)
 from sqlalchemy import Column, Integer, String, Float, Boolean, Text, JSON, ForeignKey
 from sqlalchemy.orm import relationship
 from app.database import Base
@@ -14,14 +15,14 @@ class EquipmentCategory(Base, TimestampMixin):
     # Relationships
     equipment_types = relationship("EquipmentType", back_populates="category")
     calculation_formulas = relationship("CalculationFormula", back_populates="category")
-
+    formula_templates = relationship("CalculationFormulaTemplate", back_populates="equipment_category")
 class EquipmentType(Base, TimestampMixin):
     __tablename__ = "equipment_types"
     
     id = Column(Integer, primary_key=True, index=True)
     category_id = Column(Integer, ForeignKey("equipment_categories.id"))
     
-    # Basic information (from your existing schema)
+    # Basic information
     nomenclature = Column(String(200), nullable=False)
     type_code = Column(String(50), nullable=False, unique=True)
     unit = Column(String(20), nullable=False)
@@ -31,16 +32,18 @@ class EquipmentType(Base, TimestampMixin):
     calibration_method = Column(String(200))
     is_active = Column(Boolean, default=True)
     
-    # Enhanced fields for dynamic selection (from your schema)
-    measurement_points = Column(JSON)  # Already exists
-    required_standards_config = Column(JSON)  # Already exists
+    # Enhanced fields for dynamic selection
+    measurement_points = Column(JSON)
+    required_standards_config = Column(JSON)
     
-    # Relationships
+    # FIXED: Complete Relationships
     category = relationship("EquipmentCategory", back_populates="equipment_types")
     measurement_templates = relationship("MeasurementTemplate", back_populates="equipment_type")
-    standards_rules = relationship("StandardsSelectionRule", back_populates="equipment_type")
     jobs = relationship("Job", back_populates="equipment_type")
-
+    # Note: standards_rules is in standards.py, not here
+    calculation_methods = relationship("CalculationMethod", back_populates="equipment_type")
+    formula_lookups = relationship("FormulaLookupTable", back_populates="equipment_type")
+    standards_rules = relationship("StandardsSelectionRule", back_populates="equipment_type")
 class CalculationFormula(Base, TimestampMixin):
     __tablename__ = "calculation_formulas"
     
@@ -55,3 +58,4 @@ class CalculationFormula(Base, TimestampMixin):
     
     # Relationships
     category = relationship("EquipmentCategory", back_populates="calculation_formulas")
+    

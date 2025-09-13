@@ -1,9 +1,10 @@
-from sqlalchemy import Column, Integer, String, Text, Date, ForeignKey, JSON, Boolean
+from sqlalchemy import Column, Integer, String, Text, Date, ForeignKey, JSON, Boolean, DateTime
 from sqlalchemy.types import DECIMAL as Decimal
 from sqlalchemy.orm import relationship
 from app.database import Base
 from app.models.base import TimestampMixin, AuditMixin
 import enum
+from app.models.calculations import JobCalculationResult
 
 class JobStatus(str, enum.Enum):
     PENDING = "pending"
@@ -95,3 +96,15 @@ class Job(Base, TimestampMixin, AuditMixin):
     
     # NEW: Equipment Type Relationship for Dynamic Logic
     equipment_type = relationship("EquipmentType", back_populates="jobs")
+        # NEW: Calculation Engine Fields
+    calculation_engine_version = Column(String(10), default="1.0")
+    auto_deviation_enabled = Column(Boolean, default=True)
+    calculation_status = Column(String(50), default="pending")
+    calculation_started_at = Column(DateTime(timezone=True))
+    calculation_completed_at = Column(DateTime(timezone=True))
+    calculation_error = Column(Text)
+    tolerance_limits = Column(JSON)
+    calculation_config = Column(JSON)
+    
+    # NEW: Relationships
+    calculation_results = relationship("JobCalculationResult", back_populates="job", cascade="all, delete-orphan")
